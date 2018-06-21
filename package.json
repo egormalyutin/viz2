@@ -20,6 +20,8 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
-    "mithril": "^1.1.6"
+    "debounce": "^1.1.0",
+    "mithril": "^1.1.6",
+    "papaparse": "^4.5.0"
   }
 }
