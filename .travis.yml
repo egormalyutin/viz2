@@ -1,0 +1,10 @@
+language: go
+
+go: 1.10
+
+before_install:
+  - npm i -g brunch
+  - go get github.com/GeertJohan/go.rice
+  - go get github.com/GeertJohan/go.rice/rice
+  - brunch b
+  - npm run production

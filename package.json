@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "install": "go get ./... && go get github.com/GeertJohan/go.rice && go get github.com/GeertJohan/go.rice/rice",
-    "production": "rice embed-go && go build",
+    "install": "go get -t ./... && go get github.com/GeertJohan/go.rice && go get github.com/GeertJohan/go.rice/rice",
+    "production": "brunch b --production && rice embed-go && go build",
     "start": "go run main.go"
   },
   "author": "",
