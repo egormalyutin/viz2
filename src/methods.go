@@ -1,14 +1,11 @@
 package viz
 
+import "log"
+
 // get
 type WSGet struct {
 	Start int
 	End   int
-}
-
-// lines
-type WSLines struct {
-	Type string
 }
 
 var Methods = map[string]func([]byte) []byte{
@@ -26,6 +23,15 @@ var Methods = map[string]func([]byte) []byte{
 			return nil, err
 		}
 
+		return lines, nil
+	}),
+
+	"lines": WrapMethod("lines", func() (interface{}, error) {
+		lines, err := db.Lines()
+		if err != nil {
+			log.Print(err)
+			return nil, err
+		}
 		return lines, nil
 	}),
 }

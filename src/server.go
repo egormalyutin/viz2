@@ -20,19 +20,31 @@ func WrapMethod(name string, handler interface{}) func([]byte) []byte {
 	h := reflect.ValueOf(handler)
 	t := h.Type()
 
-	arg := t.In(0)
+	useArg := false
+	var arg reflect.Type
+	if t.NumIn() > 0 {
+		useArg = true
+		arg = t.In(0)
+	}
 
 	return func(data []byte) []byte {
-		vr := reflect.New(arg)
-		v := vr.Interface()
+		var result []reflect.Value
 
-		err := json.Unmarshal(data, &v)
-		if err != nil {
-			return []byte(`{"type":"error","data":"\"Invalid JSON\""}`)
+		if useArg {
+			vr := reflect.New(arg)
+			v := vr.Interface()
+
+			err := json.Unmarshal(data, &v)
+			if err != nil {
+				return []byte(`{"type":"error","data":"\"Invalid JSON\""}`)
+			}
+
+			param := reflect.ValueOf(v).Elem()
+			result = h.Call([]reflect.Value{param})
+
+		} else {
+			result = h.Call([]reflect.Value{})
 		}
-
-		param := reflect.ValueOf(v).Elem()
-		result := h.Call([]reflect.Value{param})
 
 		ret := result[0].Interface()
 		rerr := result[1].Interface()
@@ -107,6 +119,7 @@ func HandleWS(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		resp := method([]byte(message.Data))
+		log.Print(string(resp))
 
 		err = c.WriteMessage(websocket.TextMessage, resp)
 		if err != nil {

@@ -9,7 +9,7 @@ do ->
 	Main =
 		oninit: ->
 			@count = 0
-			console.log await ws.get("get", start: 500, end: 600)
+			console.log await ws.get("lines")
 
 		view: ->
 			m "h1", "sdsds"
