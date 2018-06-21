@@ -119,7 +119,6 @@ func HandleWS(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		resp := method([]byte(message.Data))
-		log.Print(string(resp))
 
 		err = c.WriteMessage(websocket.TextMessage, resp)
 		if err != nil {
