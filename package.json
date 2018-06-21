@@ -1,0 +1,25 @@
+{
+  "name": "viz2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "install": "go get ./... && go get github.com/GeertJohan/go.rice && go get github.com/GeertJohan/go.rice/rice",
+    "production": "rice embed-go && go build",
+    "start": "go run main.go"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-brunch": "^6.1.1",
+    "babel-preset-env": "^1.7.0",
+    "brunch": "^2.10.12",
+    "coffeescript2s-brunch": "^3.0.0",
+    "stylus-brunch": "^2.10.0",
+    "uglify-js-brunch": "^2.10.0"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "mithril": "^1.1.6"
+  }
+}
