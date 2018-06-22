@@ -6,9 +6,9 @@ m        = require "mithril"
 papa     = require "papaparse"
 debounce = require "debounce"
 
-CHUNK_SIZE = 100
-
 LINE_SIZE = 20 
+FAULT     = LINE_SIZE / 5
+VISIBLE   = 300
 
 isVisible = (e) ->
 	return !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length)
@@ -31,45 +31,62 @@ do ->
 					@lines[i] ?= line
 					i++
 
-				m.redraw()
-
 		loadLinesCount: ->
 			ws.get("lines").then (@count) =>
 
 		oninit: ->
 			@count = 0
-
+			@height = 0
+			@visible = {}
 			@lines = {}
 
-			Main.loadLines.call(@, 0, 100)
+			await Main.loadLinesCount.call(@)
+			console.log "Lines count:", @count
+			@height = (@count * LINE_SIZE)
+			m.redraw()
 
-			Main.loadLinesCount.call(@)
+		scroll: debounce (event) ->
+			dom = event.target
+			trueScrollTop    = dom.scrollY or dom.scrollTop
+			trueScrollBottom = dom.clientHeight + trueScrollTop
+
+			scrollTop    = Math.max trueScrollTop    - VISIBLE, 0
+			scrollBottom = Math.min trueScrollBottom + VISIBLE, @height
+
+			topLine    = Math.floor scrollTop    / LINE_SIZE
+			bottomLine = Math.floor scrollBottom / LINE_SIZE
+
+			@visible = {}
+
+			Main.loadLines.call(@, topLine, bottomLine)
 				.then =>
-					console.log @count
-					document.body.style.height = (@count * LINE_SIZE) + "px"
+					for num, line of @lines
+						num -= 0
+						y = num * LINE_SIZE
+						yBottom = y + LINE_SIZE
 
-			@bottomListener = debounce =>
-				scrollTop    = window.scrollY
-				scrollBottom = window.innerHeight + window.scrollY
+						if (yBottom < scrollTop) or (y > scrollBottom)
+							delete @lines[num]
 
-				if scrollBottom >= document.body.offsetHeight - 300
-					Main.loadLines.call(@)
-
-				topLine    = Math.floor scrollTop    / LINE_SIZE
-				bottomLine = Math.floor scrollBottom / LINE_SIZE
-				Main.loadLines.call(@, topLine, bottomLine)
-			, 20
-
-			window.addEventListener "scroll", @bottomListener
-
-		onremove: ->
-			window.removeEventListener "scroll", @bottomListener
+						if (y > trueScrollTop - FAULT) and (yBottom < trueScrollBottom + FAULT)
+							@visible[num] = line
+		, 10
 
 		view: ->
-			m "table", mapObj(@lines, (line, num) ->
-				return m "tr", { style: top: (LINE_SIZE * num) + "px" }, line.map (cell) ->
-					m "td", cell
-			)
+			m "div.table-root", { 
+				onscroll: (event) => Main.scroll.call @, event
+				oncreate: (vnode) =>
+					@updateInterval = setInterval =>
+						Main.scroll.call @, { target: vnode.dom }
+					, 500
+				onremove: (vnode) ->
+					clearInterval @updateInterval
+			},
+				m "div.table", { style: height: @height + "px" },
+					m "table", mapObj(@lines, (line, num) ->
+						return m "tr", { style: top: (LINE_SIZE * num) + "px" }, line.map (cell) ->
+							m "td", cell
+					)
 
 	# mount
 	root = document.getElementById "root"
