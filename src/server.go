@@ -133,11 +133,16 @@ func HandleWS(rw http.ResponseWriter, req *http.Request) {
 type ConfigJS struct {
 	WS       string     `json:"ws"`
 	Language []Language `json:"languages"`
+	Format   []string   `json:"format"`
 }
 
 // Send config.js with config data to client
 func HandleConfig(rw http.ResponseWriter, req *http.Request) {
-	conf := ConfigJS{"ws://" + req.Host + "/ws", config.Language}
+	conf := ConfigJS{
+		"ws://" + req.Host + "/ws",
+		config.Language,
+		config.Format,
+	}
 	data, err := json.Marshal(conf)
 	if err != nil {
 		log.Print(err)

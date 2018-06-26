@@ -19,6 +19,7 @@ func InitDB() error {
 		if config.CSV.File == "" {
 			return errors.New("Field \"csv\" must be path to CSV file, but it is not defined")
 		}
+		config.Format = config.CSV.Format
 		db = &CSV{}
 		db.Init(config)
 	}

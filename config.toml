@@ -3,11 +3,12 @@ db = "csv"
 
 [csv]
 	file = "data.csv"
+	format = ["date", "number", "number", "number", "number", "number"]
 
 [[language]]
 	language = "en"
-	headers = ["Time", "?", "something"]
+	headers = ["Time", "Voltage, kw.", "Amperage", "Power, watt", "Energy supplied, kw.×hour", "Energy received, kw.×hour"]
 
 [[language]]
 	language = "ru"
-	headers = ["Время", "Напряжение?", "Ещё что-то", "Шо это такое?", "???", "помогите"]
+	headers = ["Время", "Напряжение, кВ", "Ток, А", "Мощность, Вт", "Энергия отданная, кВт×ч", "Энергия принятая, кВт×ч"]

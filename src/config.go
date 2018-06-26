@@ -14,10 +14,12 @@ type Config struct {
 	CSV      CSVConfig
 	Port     int
 	Language []Language
+	Format   []string
 }
 
 type CSVConfig struct {
-	File string
+	File   string
+	Format []string
 }
 
 type Language struct {

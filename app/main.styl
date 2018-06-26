@@ -1,29 +1,40 @@
 html, body
 	font-family font-family PT Sans, Open Sans, Arial, -apple-system, BlinkMacSystemFont, Roboto, Helvetica Neue, Calibri, Helvetica, sans-serif
+	font-size 1em
 	margin 0
 	padding 0
 
 table
-	display block
-	white-space nowrap
+	table-layout fixed
+	width 100%
 	margin 0
 	padding 0
 	position relative
+	width auto
 
 td, th
-	height 25px
 	padding 0
 	margin 0
 	text-align center
+	position relative
 	padding-left  0.3em
 	padding-right 0.3em
 
 th
-	position relative
 	background white
-	outline-top 10px solid white
+	z-index 2
+	max-width 10vw
+
+td
+	white-space nowrap
+	height 25px
+	position relative
+	z-index 1
 
 .table-root
+	display flex
+	flex-direction row
+	justify-content center
 	height 50vh
 	overflow scroll
 	margin 0
