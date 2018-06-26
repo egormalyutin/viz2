@@ -37,9 +37,10 @@ do ->
 
 	class Main
 		constructor: ->
-			@count = 0
-			@start = 0
-			@lines = []
+			@count   = 0
+			@start   = 0
+			@lines   = []
+			@visible = []
 
 			@loadLinesCount().then (@count) =>
 				console.log "Lines count:", @count
@@ -70,6 +71,8 @@ do ->
 
 			@start = topLine
 			@lines = await @loadLines topLine, bottomLine
+			@visible = @lines[0..@lines.length - 3]
+			console.log @visible
 
 			m.redraw()
 
