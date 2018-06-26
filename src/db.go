@@ -2,7 +2,6 @@ package viz
 
 import (
 	"errors"
-	"path/filepath"
 )
 
 type DB interface {
@@ -14,13 +13,12 @@ type DB interface {
 // init nil DB
 var db DB
 
-func InitDB(workdir string) error {
+func InitDB() error {
 	switch config.DB {
 	case "csv":
-		if config.CSV == "" {
+		if config.CSV.File == "" {
 			return errors.New("Field \"csv\" must be path to CSV file, but it is not defined")
 		}
-		config.CSV = filepath.Join(workdir, config.CSV)
 		db = &CSV{}
 		db.Init(config)
 	}

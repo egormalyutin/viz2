@@ -7,14 +7,22 @@ import (
 
 	"github.com/BurntSushi/toml"
 	// "github.com/alecthomas/kingpin"
-	// "github.com/json-iterator/go"
-	// json := jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 type Config struct {
-	DB   string
-	CSV  string
-	Port int
+	DB       string
+	CSV      CSVConfig
+	Port     int
+	Language []Language
+}
+
+type CSVConfig struct {
+	File string
+}
+
+type Language struct {
+	Language string   `json:"language"`
+	Headers  []string `json:"headers"`
 }
 
 // empty config at start

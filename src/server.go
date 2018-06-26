@@ -125,54 +125,19 @@ func HandleWS(rw http.ResponseWriter, req *http.Request) {
 			log.Print(err)
 			break
 		}
-
-		// for _, method := range Methods {
-		// 	v, invalid, err := method(message)
-		// 	if !invalid {
-		// 		if err != nil {
-		// 			log.Print(err)
-		// 		} else {
-		// 			succ = true
-		// 			data, err := json.Marshal(v)
-		// 			if err != nil {
-		// 				log.Print(err)
-		// 				return
-		// 			}
-		// 			err = c.WriteMessage(websocket.TextMessage, data)
-		// 			if err != nil {
-		// 				log.Print(err)
-		// 				return
-		// 			}
-		// 		}
-		// 		break
-		// 	}
-		// }
-		// if !succ {
-		// 	resp := WS{"error", "Invalid request"}
-		// 	data, err := json.Marshal(resp)
-		// 	if err != nil {
-		// 		log.Print(err)
-		// 		return
-		// 	}
-		// 	err = c.WriteMessage(websocket.TextMessage, data)
-		// 	if err != nil {
-		// 		log.Print(err)
-		// 		return
-		// 	}
-
-		// }
 	}
 }
 
 // CONFIG
 
 type ConfigJS struct {
-	WS string `json:"ws"`
+	WS       string     `json:"ws"`
+	Language []Language `json:"languages"`
 }
 
 // Send config.js with config data to client
 func HandleConfig(rw http.ResponseWriter, req *http.Request) {
-	conf := ConfigJS{"ws://" + req.Host + "/ws"}
+	conf := ConfigJS{"ws://" + req.Host + "/ws", config.Language}
 	data, err := json.Marshal(conf)
 	if err != nil {
 		log.Print(err)

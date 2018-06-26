@@ -1,6 +1,10 @@
 require "babel-polyfill"
 
-WS       = require "./ws"
+console.log "Config:", config
+
+{ language } = require "./languages"
+
+WS = require "./ws"
 
 m    = require "mithril"
 papa = require "papaparse"
@@ -10,9 +14,7 @@ papa = require "papaparse"
 # todo: parse time
 # todo: watch
 
-LINE_SIZE  = 20 
-CHUNK_SIZE = 100
-FAULT      = LINE_SIZE / 5
+LINE_SIZE  = 25 
 VISIBLE    = 300
 
 isVisible = (e) ->
@@ -26,12 +28,6 @@ mapObj = (obj, f) ->
 
 i = 0
 
-headers = [
-	"lol",
-	"kek",
-	"cheburek"
-]
-
 do ->
 	ws = await new WS config.ws
 
@@ -41,6 +37,10 @@ do ->
 			@start   = 0
 			@lines   = []
 			@visible = []
+
+			window.getVisible = => @visible
+
+			@updating = false
 
 			@loadLinesCount().then (@count) =>
 				console.log "Lines count:", @count
@@ -58,21 +58,19 @@ do ->
 					resolve lines
 
 		scroll: (event) ->
-			@updating = false
-			# console.log ++i
 			dom = event.target
-			scrollTop    = dom.scrollY or dom.scrollTop
-			scrollBottom = dom.clientHeight + scrollTop
+			@scrollTop = dom.scrollY or dom.scrollTop
 
-			@scrollTop = scrollTop
+			scrollBottom = dom.clientHeight + @scrollTop
 
-			topLine    = Math.min(Math.max(Math.floor(scrollTop / LINE_SIZE), 0), @count)
+			topLine    = Math.min(Math.max(Math.floor(@scrollTop / LINE_SIZE), 0), @count)
 			bottomLine = Math.max(Math.min(Math.floor(scrollBottom / LINE_SIZE), @count), 0) 
 
 			@start = topLine
+
 			@lines = await @loadLines topLine, bottomLine
+
 			@visible = @lines[0..@lines.length - 3]
-			console.log @visible
 
 			m.redraw()
 
@@ -91,7 +89,7 @@ do ->
 					m "div.table", { style: height: (@count * LINE_SIZE) + "px" },
 						m "table", { style: top: (@start * LINE_SIZE) + "px" }, [
 							m "thead", [
-								headers.map (header) =>
+								m "tr", language.headers.map (header) =>
 									m "th", { style: top: (@scrollTop - (@start * LINE_SIZE)) + "px" }, header
 							]
 							m "tbody", [

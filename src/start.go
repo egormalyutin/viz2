@@ -9,6 +9,8 @@ import (
 	"github.com/GeertJohan/go.rice"
 )
 
+var workdir = ""
+
 func Start(box *rice.Box) {
 	configName := "config.toml"
 
@@ -28,7 +30,9 @@ func Start(box *rice.Box) {
 
 	log.Printf("Found config \"%s\"", configPath)
 
-	if err = InitDB(filepath.Dir(configPath)); err != nil {
+	workdir = filepath.Dir(configPath)
+
+	if err = InitDB(); err != nil {
 		log.Fatal(err)
 	}
 

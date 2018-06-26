@@ -5,19 +5,23 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 	"strings"
 )
 
 type CSV struct {
 	config Config
 	csv    []string
+	path   string
 }
 
 func (c *CSV) Init(conf Config) error {
 	log.Print("WARNING: CSV mode is only for debug and small DB sizes. Don't use it one production!")
 	c.config = conf
 
-	data, err := ioutil.ReadFile(c.config.CSV)
+	c.path = filepath.Join(workdir, config.CSV.File)
+
+	data, err := ioutil.ReadFile(c.path)
 	if err != nil {
 		return err
 	}
