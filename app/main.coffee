@@ -2,13 +2,18 @@ require "babel-polyfill"
 
 WS       = require "./ws"
 
-m        = require "mithril"
-papa     = require "papaparse"
-debounce = require "debounce"
+m    = require "mithril"
+papa = require "papaparse"
 
-LINE_SIZE = 20 
-FAULT     = LINE_SIZE / 5
-VISIBLE   = 300
+# todo: calculate line size
+# todo: resize
+# todo: parse time
+# todo: watch
+
+LINE_SIZE  = 20 
+CHUNK_SIZE = 100
+FAULT      = LINE_SIZE / 5
+VISIBLE    = 300
 
 isVisible = (e) ->
 	return !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length)
@@ -19,74 +24,79 @@ mapObj = (obj, f) ->
 		ret.push f prop, name
 	return ret
 
+i = 0
+
+headers = [
+	"lol",
+	"kek",
+	"cheburek"
+]
+
 do ->
 	ws = await new WS config.ws
 
-	Main =
+	class Main
+		constructor: ->
+			@count = 0
+			@start = 0
+			@lines = []
+
+			@loadLinesCount().then (@count) =>
+				console.log "Lines count:", @count
+				m.redraw()
+
 		loadLines: (start, end) ->
-			ws.get("get", { start, end }).then (lines) =>
-				{ data } = papa.parse lines
-				i = start
-				for line in data
-					@lines[i] ?= line
-					i++
+			return new Promise (resolve) =>
+				ws.get("get", { start, end }).then (lines) =>
+					{ data } = papa.parse lines
+					resolve data
 
 		loadLinesCount: ->
-			ws.get("lines").then (@count) =>
+			return new Promise (resolve) =>
+				ws.get("lines").then (lines) =>
+					resolve lines
 
-		oninit: ->
-			@count = 0
-			@height = 0
-			@visible = {}
-			@lines = {}
-
-			await Main.loadLinesCount.call(@)
-			console.log "Lines count:", @count
-			@height = (@count * LINE_SIZE)
-			m.redraw()
-
-		scroll: debounce (event) ->
+		scroll: (event) ->
+			@updating = false
+			# console.log ++i
 			dom = event.target
-			trueScrollTop    = dom.scrollY or dom.scrollTop
-			trueScrollBottom = dom.clientHeight + trueScrollTop
+			scrollTop    = dom.scrollY or dom.scrollTop
+			scrollBottom = dom.clientHeight + scrollTop
 
-			scrollTop    = Math.max trueScrollTop    - VISIBLE, 0
-			scrollBottom = Math.min trueScrollBottom + VISIBLE, @height
+			@scrollTop = scrollTop
 
-			topLine    = Math.floor scrollTop    / LINE_SIZE
-			bottomLine = Math.floor scrollBottom / LINE_SIZE
+			topLine    = Math.min(Math.max(Math.floor(scrollTop / LINE_SIZE), 0), @count)
+			bottomLine = Math.max(Math.min(Math.floor(scrollBottom / LINE_SIZE), @count), 0) 
 
-			@visible = {}
+			@start = topLine
+			@lines = await @loadLines topLine, bottomLine
 
-			Main.loadLines.call(@, topLine, bottomLine)
-				.then =>
-					for num, line of @lines
-						num -= 0
-						y = num * LINE_SIZE
-						yBottom = y + LINE_SIZE
-
-						if (yBottom < scrollTop) or (y > scrollBottom)
-							delete @lines[num]
-
-						if (y > trueScrollTop - FAULT) and (yBottom < trueScrollBottom + FAULT)
-							@visible[num] = line
-		, 10
+			m.redraw()
 
 		view: ->
 			m "div.table-root", { 
-				onscroll: (event) => Main.scroll.call @, event
+				onscroll: (event) => await @scroll event
 				oncreate: (vnode) =>
 					@updateInterval = setInterval =>
-						Main.scroll.call @, { target: vnode.dom }
+						await @scroll { target: vnode.dom }
+						m.redraw()
 					, 500
-				onremove: (vnode) ->
+				onremove: (vnode) =>
 					clearInterval @updateInterval
 			},
-				m "div.table", { style: height: @height + "px" },
-					m "table", mapObj(@lines, (line, num) ->
-						return m "tr", { style: top: (LINE_SIZE * num) + "px" }, line.map (cell) ->
-							m "td", cell
-					)
+				if @lines
+					m "div.table", { style: height: (@count * LINE_SIZE) + "px" },
+						m "table", { style: top: (@start * LINE_SIZE) + "px" }, [
+							m "thead", [
+								headers.map (header) =>
+									m "th", { style: top: (@scrollTop - (@start * LINE_SIZE)) + "px" }, header
+							]
+							m "tbody", [
+								@lines.map (line) =>
+									m "tr", line.map (cell) =>
+										m "td", cell
+							]
+						]
 
 	# mount
 	root = document.getElementById "root"

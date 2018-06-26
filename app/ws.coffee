@@ -1,5 +1,4 @@
 EventEmitter = require "events"
-m = require "mithril"
 
 class WS extends EventEmitter
 	constructor: (@address) ->
@@ -27,8 +26,6 @@ class WS extends EventEmitter
 					throw new Error "Invalid message: no \"data\" field: ", event
 
 				@emit data.type, JSON.parse(data.data)
-
-				m.redraw()
 
 	receive: (type) ->
 		return new Promise (resolve) =>
