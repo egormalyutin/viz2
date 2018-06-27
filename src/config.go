@@ -15,6 +15,7 @@ type Config struct {
 	Port     int
 	Language []Language
 	Format   []string
+	Plot     []Plot
 }
 
 type CSVConfig struct {
@@ -25,6 +26,11 @@ type CSVConfig struct {
 type Language struct {
 	Language string   `json:"language"`
 	Headers  []string `json:"headers"`
+	Plots    []string `json:"plots"`
+}
+
+type Plot struct {
+	Data []int `json:"data"`
 }
 
 // empty config at start

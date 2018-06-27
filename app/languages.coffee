@@ -22,6 +22,12 @@ for name, language of languages
 
 language = languages[LANGUAGE] or languages["en"]
 
+colors = ["red", "green", "blue", "yellow", "pink", "gray", "brown"]
+language.colors = (i) ->
+	return colors[i] or 
+		colors[Math.abs(i) / colors.length] or 
+		colors[Math.abs(i) % colors.length - 1]
+
 console.log "Using language", language
 
 module.exports = {
