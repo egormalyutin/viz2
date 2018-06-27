@@ -9,7 +9,6 @@ WS = require "./ws"
 m    = require "mithril"
 papa = require "papaparse"
 
-# todo: calculate line size
 # todo: resize
 # todo: parse time
 # todo: watch
@@ -39,6 +38,8 @@ do ->
 			document.body.removeChild tr
 		, 150
 
+	fault = lineSize / 2
+
 	class Table
 		constructor: ->
 			@count   = 0
@@ -65,15 +66,26 @@ do ->
 		scroll: (event) ->
 			dom = event.target
 			@scrollTop = dom.scrollY or dom.scrollTop
-
-			scrollBottom = dom.clientHeight + @scrollTop
+			@scrollBottom = dom.clientHeight + @scrollTop
 
 			topLine    = Math.min(Math.max(Math.floor(@scrollTop / lineSize), 0), @count)
-			bottomLine = Math.max(Math.min(Math.floor(scrollBottom / lineSize), @count), 0) 
+			bottomLine = Math.max(Math.min(Math.floor(@scrollBottom / lineSize), @count), 0) 
 
 			@start = topLine
 			@lines = await @loadLines topLine, bottomLine
-			@visible = @lines[0..@lines.length - 3]
+			@visible = window.visible = (=>
+				result = []
+				vt = @scrollTop + @maxHead
+				for num, line of @lines
+					num -= 0
+
+					posTop    = (@start + num + 1) * lineSize
+					posBottom = (@start + num + 2) * lineSize
+
+					if posTop >= vt and posBottom <= @scrollBottom
+						result.push line
+				return result
+			)()
 
 			m.redraw()
 
@@ -102,10 +114,7 @@ do ->
 													@maxHead = head
 											, 150
 
-									}, header#.split("\n").map (line) -> m "span", [
-										# line
-										# m "br"
-									# ]
+									}, header
 							]
 							m "tbody", [
 								@lines.map (line) =>
