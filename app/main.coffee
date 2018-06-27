@@ -80,10 +80,11 @@ do ->
 					num -= 0
 
 					posTop    = (@start + num + 1) * lineSize
-					posBottom = (@start + num + 2) * lineSize
+					posBottom = posTop + lineSize
 
 					if posTop >= vt and posBottom <= @scrollBottom
 						result.push line
+
 				return result
 			)()
 
