@@ -39,7 +39,7 @@ do ->
 			document.body.removeChild tr
 		, 150
 
-	class Main
+	class Table
 		constructor: ->
 			@count   = 0
 			@start   = 0
@@ -113,6 +113,12 @@ do ->
 										m "td", cell
 							]
 						]
+
+	class Main
+		view: ->
+			m "div.main", [
+				m Table
+			]
 
 	# mount
 	root = document.getElementById "root"
