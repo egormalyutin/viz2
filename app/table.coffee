@@ -1,6 +1,7 @@
 m = require "mithril"
 
 { language } = require "./languages"
+bus = require "./bus"
 
 papa = require "papaparse"
 
@@ -11,9 +12,10 @@ class Table
 			@maxHead = 0
 			@lines   = []
 			@visible = []
+			@light   = -1
 
 		oninit: (vnode) ->
-			@lineSize = await new Promise (resolve) ->
+			calc = => new Promise (resolve) ->
 				table = document.createElement "table"
 				tr = document.createElement "tr"
 				td = document.createElement "td"
@@ -30,8 +32,17 @@ class Table
 					document.body.removeChild tr
 				, 150
 
-			@count = await @loadLinesCount(vnode)
-			console.log "Lines count:", @count
+			@lineSize = await calc()
+
+			bus.on "resize", =>
+				@lineSize = await calc()
+				m.redraw()
+
+			vnode.attrs.ws.on "lines", (@count) =>
+
+			vnode.attrs.ws.send "lines"
+			console.log "Lines count:", await vnode.attrs.ws.receive("lines")
+
 			m.redraw()
 
 		loadLines: (vnode, start, end) ->
@@ -40,12 +51,9 @@ class Table
 					{ data } = papa.parse lines
 					resolve data
 
-		loadLinesCount: (vnode) ->
-			return new Promise (resolve) =>
-				vnode.attrs.ws.get("lines").then (lines) =>
-					resolve lines
-
 		scroll: (vnode, event) ->
+			@light = -1
+
 			dom = event.target
 			@scrollTop = dom.scrollY or dom.scrollTop
 			@scrollBottom = dom.clientHeight + @scrollTop
@@ -69,6 +77,7 @@ class Table
 
 				return result
 			)()
+
 			if vnode.attrs.onvisible
 				vnode.attrs.onvisible @visible
 
@@ -77,14 +86,14 @@ class Table
 		view: (vnode) ->
 			m "div.table-root", { 
 				onscroll: (event) =>
-					await @scroll vnode,  event
+					await @scroll vnode, event
 				oncreate: (event) =>
-					@updateInterval = setInterval =>
+					load = =>
 						await @scroll vnode, { target: event.dom }
 						m.redraw()
-					, 500
-				onremove: (vnode) =>
-					clearInterval @updateInterval
+
+					bus.on "load",   load
+					bus.on "resize", load
 			},
 				if @lines
 					m "div.table", { style: height: (@count * @lineSize) + "px" },
@@ -103,8 +112,10 @@ class Table
 									}, header
 							]
 							m "tbody", [
-								@lines.map (line) =>
-									m "tr", line.map (cell) =>
+								@lines.map (line, i) =>
+									m "tr", { 
+										class: "light" if @light == i
+									}, line.map (cell) =>
 										m "td", cell
 							]
 						]

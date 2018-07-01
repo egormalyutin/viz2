@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type CSV struct {
@@ -21,6 +23,10 @@ func (c *CSV) Init(conf Config) error {
 
 	c.path = filepath.Join(workdir, config.CSV.File)
 
+	return c.Update()
+}
+
+func (c *CSV) Update() error {
 	data, err := ioutil.ReadFile(c.path)
 	if err != nil {
 		return err
@@ -44,4 +50,39 @@ func (c *CSV) Get(start int, end int) (sl string, err error) {
 	}()
 	sl = strings.Join(lines, "\n")
 	return
+}
+
+func (c *CSV) Watch(changed chan bool, done chan bool) error {
+	errs := make(chan error)
+
+	go func() {
+		stat, err := os.Stat(c.path)
+		if err != nil {
+			errs <- err
+			return
+		}
+
+		for {
+			newStat, err := os.Stat(c.path)
+			if err != nil {
+				errs <- err
+				return
+			}
+
+			if newStat.ModTime() != stat.ModTime() {
+				changed <- true
+			}
+
+			stat = newStat
+
+			time.Sleep(1 * time.Second)
+		}
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case err := <-errs:
+		return err
+	}
 }

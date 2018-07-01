@@ -8,6 +8,8 @@ type DB interface {
 	Init(Config) error
 	Get(int, int) (string, error)
 	Lines() (int, error)
+	Update() error
+	Watch(chan bool, chan bool) error
 }
 
 // init nil DB

@@ -41,7 +41,6 @@ func WrapMethod(name string, handler interface{}) func([]byte) []byte {
 
 			param := reflect.ValueOf(v).Elem()
 			result = h.Call([]reflect.Value{param})
-
 		} else {
 			result = h.Call([]reflect.Value{})
 		}
@@ -83,6 +82,17 @@ func HandleWS(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	defer c.Close()
+
+	sub := func() {
+		bts := Methods["lines"]([]byte{})
+		err = c.WriteMessage(websocket.TextMessage, bts)
+		if err != nil {
+			log.Print(err)
+		}
+	}
+
+	bus.Subscribe("update", sub)
+	defer bus.Unsubscribe("update", sub)
 
 	for {
 		_, data, err := c.ReadMessage()

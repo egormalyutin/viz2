@@ -7,7 +7,10 @@ import (
 	"path/filepath"
 
 	"github.com/GeertJohan/go.rice"
+	evbus "github.com/asaskevich/EventBus"
 )
+
+var bus = evbus.New()
 
 var workdir = ""
 
@@ -36,11 +39,35 @@ func Start(box *rice.Box) {
 		log.Fatal(err)
 	}
 
-	if err = Serve(box); err != nil {
-		if conf.Port == 80 {
-			log.Fatal(err, "\nTry to start command from root.")
-		} else {
-			log.Fatal(err)
+	done := make(chan bool)
+	changed := make(chan bool)
+
+	go func() {
+		if err := Serve(box); err != nil {
+			if conf.Port == 80 {
+				log.Print(err, "\nTry to start command from root.")
+			} else {
+				log.Print(err)
+			}
+		}
+		done <- true
+	}()
+
+	go func() {
+		err := db.Watch(changed, done)
+		if err != nil {
+			log.Print(err)
+		}
+		done <- true
+	}()
+
+	for {
+		select {
+		case <-changed:
+			db.Update()
+			bus.Publish("update")
+		case <-done:
+			return
 		}
 	}
 }

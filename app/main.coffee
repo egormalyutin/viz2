@@ -5,10 +5,11 @@ console.log "Config:", config
 { language } = require "./languages"
 WS = require "./ws"
 
-Table = require "./table"
-Plots = require "./plots"
+Table   = require "./table"
+Plots   = require "./plots"
+Limiter = require "./limiter"
 
-m    = require "mithril"
+m = require "mithril"
 
 # todo: resize
 # todo: watch
@@ -30,14 +31,34 @@ do ->
 	class Main
 		constructor: ->
 			@visible = []
+			@lines = []
+			@doms = []
 
 		onvisible: (@visible) ->
-			window.visible = @visible
+			m.redraw()
 
 		view: ->
+			@table = m Table, { 
+				ws, 
+				onvisible: (visible) => 
+					@onvisible visible
+			}
+
+			@plots = m Plots, {
+				lines: @visible
+				onclick: (i) =>
+					index = @table.state.lines.indexOf @visible[i]
+					@table.state.light = index
+					m.redraw()
+			}
+
+			tablePad = m "div.pad", @table
+			plotsPad = m "div.pad", @plots
+
 			m "div.main", [
-				m Table, { ws, onvisible: (visible) => @onvisible visible }
-				m Plots, { lines: @visible }
+				tablePad
+				m Limiter, { first: tablePad, second: plotsPad }
+				plotsPad
 			]
 
 	# mount
