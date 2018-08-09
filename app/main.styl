@@ -63,11 +63,12 @@ td
 	justify-content center
 	overflow auto
 	height 100%
-	width 100%
+	width 100vw
 	margin 0
 	padding 0
 
 .plots
+	position relative
 	display flex
 	flex-direction row
 	justify-content center
@@ -100,3 +101,81 @@ td
 
 .light
 	background lightblue
+
+.range-button
+	position absolute
+	right -1.5em
+	top -1.5em
+	width 2em
+	height 2em
+	padding 1em
+	display flex
+	flex-direction column
+	align-items flex-start
+	justify-content flex-end
+	background #546de5
+	border-radius 321321312px
+	z-index 999
+	opacity 0
+	transition 0.3s opacity
+	cursor pointer
+
+.range-button:hover
+	opacity 1
+
+.range-button-arrow
+	user-select none
+	font-size 1.2em
+	color white	
+
+.top-pad
+	display flex
+	flex-direction row
+	margin 0
+	padding 0
+	position relative
+	left 0
+	transition left 0.3s
+
+.top-pad.select-right
+	left -100vw
+
+.table-pad
+	width 100vw
+
+.range
+	display flex
+	flex-direction column
+	align-items center
+	justify-content center
+	width 100vw
+	height 100%
+
+.range-input
+	width 70%
+
+.preloader
+	position absolute
+	border 1vw solid #f3f3f3
+	border-top 1vw solid #3498db
+	border-radius 50%
+	width 4vw
+	height 4vw
+	animation spin 2s linear infinite
+
+.preloader-box
+	position absolute
+	width 100%
+	height 100%
+	display flex
+	flex-direction column
+	align-items center
+	justify-content center
+	background rgba(0,0,0, 0.5)
+	z-index 999
+
+@keyframes spin
+	from 
+		transform rotate(0deg)
+	to 
+		transform rotate(360deg)

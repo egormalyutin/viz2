@@ -9,10 +9,7 @@ db = "csv"
 	data = [1]
 
 [[plot]]
-	data = [2]
-
-[[plot]]
-	data = [3]
+	data = [2, 3]
 
 [[plot]]
 	data = [4, 5]
@@ -20,9 +17,9 @@ db = "csv"
 [[language]]
 	language = "en"
 	headers = ["Time", "Voltage, kw.", "Amperage", "Power, watt", "Energy supplied, kw.×hour", "Energy received, kw.×hour"]
-	plots = ["Voltage", "Amperage", "Power", "Energy"]
+	plots = ["Voltage", "Amperage and power", "Energy"]
 
 [[language]]
 	language = "ru"
 	headers = ["Время", "Напряжение, кВ", "Ток, А", "Мощность, Вт", "Энергия отданная, кВт×ч", "Энергия принятая, кВт×ч"]
-	plots = ["Напряжение", "Ток", "Мощность", "Энергия"]
+	plots = ["Напряжение", "Ток и мощность", "Энергия"]

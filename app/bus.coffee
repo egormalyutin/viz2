@@ -12,4 +12,7 @@ window.onload = ->
 		bus.emit "resize"
 	, 2000
 
+	window.addEventListener "resize", ->
+		bus.emit "resize"
+
 module.exports = bus

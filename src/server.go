@@ -75,6 +75,13 @@ type WS struct {
 	Data string `json:"data"`
 }
 
+func printErr(err error) {
+	str := err.Error()
+	if str != "websocket: close 1001 (going away)" {
+		log.Print(err)
+	}
+}
+
 func HandleWS(rw http.ResponseWriter, req *http.Request) {
 	c, err := upgrader.Upgrade(rw, req, nil)
 	if err != nil {
@@ -97,7 +104,7 @@ func HandleWS(rw http.ResponseWriter, req *http.Request) {
 	for {
 		_, data, err := c.ReadMessage()
 		if err != nil {
-			log.Print(err)
+			printErr(err)
 			break
 		}
 
@@ -106,7 +113,7 @@ func HandleWS(rw http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			err = c.WriteMessage(websocket.TextMessage, []byte(`{"type":"error","data":"\"Invalid JSON\""}`))
 			if err != nil {
-				log.Print(err)
+				printErr(err)
 				break
 			}
 			continue
@@ -122,7 +129,7 @@ func HandleWS(rw http.ResponseWriter, req *http.Request) {
 			}
 			err = c.WriteMessage(websocket.TextMessage, bts)
 			if err != nil {
-				log.Print(err)
+				printErr(err)
 				break
 			}
 			continue
@@ -132,7 +139,7 @@ func HandleWS(rw http.ResponseWriter, req *http.Request) {
 
 		err = c.WriteMessage(websocket.TextMessage, resp)
 		if err != nil {
-			log.Print(err)
+			printErr(err)
 			break
 		}
 	}

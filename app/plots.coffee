@@ -4,8 +4,6 @@ m = require "mithril"
 { language } = require "./languages"
 { debounce } = require "./util"
 
-# todo: throttle
-
 class Plot
 	constructor: ->
 		@chart = null
@@ -27,6 +25,12 @@ class Plot
 			options: {
 				animation: false
 				responsive: true,
+				elements:
+					{
+						point: {
+							radius: if vnode.attrs.mode == "range" then 0 else 3
+						}
+					}
 				title: {
 					display: true,
 					text: vnode.attrs.name
@@ -59,7 +63,13 @@ class Plot
 			}
 		}
 
-		@update = debounce @chart.update.bind(@chart), 20
+		@update = debounce =>
+			@chart.update {
+				duration: 0
+				lazy: false
+			}
+			vnode.attrs.finished()
+		, 20
 
 	onbeforeupdate: (vnode) ->
 		@chart.data.datasets = vnode.attrs.data.map (data) ->
@@ -73,6 +83,7 @@ class Plot
 
 		@chart.data.labels = vnode.attrs.labels
 		@chart.options.title.text = vnode.attrs.name
+		@chart.options.elements.point.radius = if vnode.attrs.mode == "range" then 0 else 3
 
 		@update()
 
@@ -84,27 +95,42 @@ class Plot
 			}
 
 class Plots
+	oninit: ->
+		@count = config.plots.length
+
 	view: (vnode) ->
 		dateId = config.format.indexOf "date"
-		m "div.plots", config.plots.map (plot, i) =>
-			m Plot, {
-				name: language.plots[i]
-				data: plot.data.map (i) =>
-					return {
-						name: language.headers[i]
-						color: language.colors(i)
-						data: vnode.attrs.lines.map (line) ->
-							return line.filter (cell, j) ->
-								return i == j
-							.map (cell) ->
-								console.log parseFloat cell
-								return parseFloat cell
-					}
 
-				labels: vnode.attrs.lines.map (line) =>
-					return line[dateId].split(" ")[1]
+		if vnode.attrs.updateCount
+			@count = config.plots.length
 
-				onclick: vnode.attrs.onclick or ->
-			}
+		m "div.plots", [
+			plots = config.plots.map (plot, i) =>
+				return m Plot, {
+					name: language.plots[i]
+					mode: vnode.attrs.mode
+					data: plot.data.map (i) =>
+						return {
+							name: language.headers[i]
+							color: language.colors(i)
+							data: vnode.attrs.lines.map (line) ->
+								return line.filter (cell, j) ->
+									return i == j
+								.map (cell) ->
+									return parseFloat cell
+						}
+
+					labels: vnode.attrs.lines.map (line) =>
+						return line[dateId].split(" ")[1]
+
+					onclick: vnode.attrs.onclick or (=>)
+
+					finished: => @count--
+				}
+
+			if vnode.attrs.loading or @count > 0
+				m "div.preloader-box", 
+					m "div.preloader"
+		]
 
 module.exports = Plots

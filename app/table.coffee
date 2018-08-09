@@ -39,6 +39,8 @@ class Table
 				m.redraw()
 
 			vnode.attrs.ws.on "lines", (@count) =>
+				vnode.attrs.onlines @count
+				m.redraw()
 
 			vnode.attrs.ws.send "lines"
 			console.log "Lines count:", await vnode.attrs.ws.receive("lines")

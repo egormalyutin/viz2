@@ -5,7 +5,18 @@ exports.files = {
 			'app.js': /^app/
 		}
 	},
-	stylesheets: { joinTo: 'app.css' }
+	stylesheets: {
+		joinTo: {
+			'vendor.css': /^node_modules/,
+			'app.css': /^app/
+		}
+	}
+};
+
+exports.npm = {
+	styles: {
+		nouislider: ["distribute/nouislider.css"]
+	}
 };
 
 exports.plugins = {

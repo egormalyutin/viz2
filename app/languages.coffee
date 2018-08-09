@@ -24,7 +24,7 @@ language = languages[LANGUAGE] or languages["en"]
 
 # colors = ["red", "green", "blue", "yellow", "pink", "gray", "brown", "purple", "black", "aqua", "fuchsia", "navy", "lime", "maroon", "teal"]
 # https://flatuicolors.com/palette/ru
-colors = ["#f19066", "#574b90", "#f5cd79", "#f78fb3", "#546de5", "#3dc1d3", "#e15f41", "#e66767", "#c44569", "#303952"]
+colors = ["#f19066", "#574b90", "#546de5", "#f78fb3", "#f5cd79", "#3dc1d3", "#e15f41", "#e66767", "#c44569", "#303952"]
 language.colors = (i) ->
 	return colors[i] or 
 		colors[Math.abs(i) / colors.length] or 

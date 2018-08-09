@@ -1,6 +1,8 @@
 m = require "mithril"
 bus = require "./bus"
 
+# todo: hide
+
 class Limiter
 	bind: (vnode, dom) ->
 		first  = vnode.attrs.first.dom
