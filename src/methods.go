@@ -8,8 +8,8 @@ type WSGet struct {
 	End   int
 }
 
-var Methods = map[string]func([]byte) []byte{
-	"get": WrapMethod("get", func(input *WSGet) (interface{}, error) {
+var Methods = map[string]func([]byte, string) []byte{
+	"get": WrapMethod(func(input *WSGet) (interface{}, error) {
 		if input.Start == input.End {
 			return "", nil
 		}
@@ -26,7 +26,7 @@ var Methods = map[string]func([]byte) []byte{
 		return lines, nil
 	}),
 
-	"lines": WrapMethod("lines", func() (interface{}, error) {
+	"lines": WrapMethod(func() (interface{}, error) {
 		lines, err := db.Lines()
 		if err != nil {
 			log.Print(err)

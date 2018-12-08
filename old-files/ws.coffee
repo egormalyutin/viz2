@@ -1,7 +1,5 @@
 EventEmitter = require "events"
 
-symbols = "1234567890qwertyuiopasdfghjklzxcvbnm"
-
 class WS extends EventEmitter
 	constructor: (@address) ->
 		super()
@@ -34,16 +32,10 @@ class WS extends EventEmitter
 			@once type, resolve
 
 	get: (type, data) ->
-		reply = "reply-"
+		@send type, data 
+		return await @receive(type)
 
-		for i in [0...20]
-			num = Math.floor Math.random() * symbols.length
-			reply += symbols[num]
-
-		@send type, data, reply
-		return await @receive reply
-
-	send: (type, data, reply = type) ->
-		@ws.send JSON.stringify { type, reply, data: JSON.stringify(data) }
+	send: (type, data) ->
+		@ws.send JSON.stringify { type, data: JSON.stringify(data) }
 
 module.exports = WS

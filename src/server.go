@@ -16,7 +16,7 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 var upgrader = websocket.Upgrader{}
 
 // METHODS
-func WrapMethod(name string, handler interface{}) func([]byte) []byte {
+func WrapMethod(handler interface{}) func([]byte, string) []byte {
 	h := reflect.ValueOf(handler)
 	t := h.Type()
 
@@ -27,7 +27,7 @@ func WrapMethod(name string, handler interface{}) func([]byte) []byte {
 		arg = t.In(0)
 	}
 
-	return func(data []byte) []byte {
+	return func(data []byte, reply string) []byte {
 		var result []reflect.Value
 
 		if useArg {
@@ -50,7 +50,7 @@ func WrapMethod(name string, handler interface{}) func([]byte) []byte {
 
 		if rerr != nil {
 			ret = rerr
-			name = "error"
+			reply = "error"
 		}
 
 		retResp, err := json.Marshal(ret)
@@ -59,7 +59,7 @@ func WrapMethod(name string, handler interface{}) func([]byte) []byte {
 			return []byte(`{"type":"error","data":"\"Server error: cannot marshal JSON\""}`)
 		}
 
-		resp, err := json.Marshal(WS{name, string(retResp)})
+		resp, err := json.Marshal(RespWS{reply, string(retResp)})
 		if err != nil {
 			log.Print("Failed to marshal JSON: ", err)
 			return []byte(`{"type":"error","data":"\"Server error: cannot marshal JSON\""}`)
@@ -71,6 +71,12 @@ func WrapMethod(name string, handler interface{}) func([]byte) []byte {
 
 // WEBSOCKET
 type WS struct {
+	Type  string `json:"type"`
+	Data  string `json:"data"`
+	Reply string `json:"reply"`
+}
+
+type RespWS struct {
 	Type string `json:"type"`
 	Data string `json:"data"`
 }
@@ -91,7 +97,7 @@ func HandleWS(rw http.ResponseWriter, req *http.Request) {
 	defer c.Close()
 
 	sub := func() {
-		bts := Methods["lines"]([]byte{})
+		bts := Methods["lines"]([]byte{}, "lines")
 		err = c.WriteMessage(websocket.TextMessage, bts)
 		if err != nil {
 			log.Print(err)
@@ -119,9 +125,13 @@ func HandleWS(rw http.ResponseWriter, req *http.Request) {
 			continue
 		}
 
+		if message.Reply == "" {
+			message.Reply = message.Type
+		}
+
 		method, ok := Methods[message.Type]
 		if !ok {
-			resp := WS{"error", "Invalid method \"" + message.Type + "\""}
+			resp := RespWS{"error", "Invalid method \"" + message.Type + "\""}
 			bts, err := json.Marshal(resp)
 			if err != nil {
 				log.Print(err)
@@ -135,7 +145,7 @@ func HandleWS(rw http.ResponseWriter, req *http.Request) {
 			continue
 		}
 
-		resp := method([]byte(message.Data))
+		resp := method([]byte(message.Data), message.Reply)
 
 		err = c.WriteMessage(websocket.TextMessage, resp)
 		if err != nil {
